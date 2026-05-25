@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Teste SharePoint API</title>
+</head>
+<body>
+
+<h2>Teste criação de card</h2>
+
+<button onclick="criarCard()">Criar Card</button>
+
+<script>
+async function criarCard(){
+
+  try {
+
+    const siteUrl = "https://mederisaude-my.sharepoint.com/personal/joao_victor_mdrsaude_com_br";
+
+    const endpoint = `${siteUrl}/_api/web/lists/GetByTitle('MDR_Processos')/items`;
+
+    // PEGAR DIGESTO
+    const digestResp = await fetch(`${siteUrl}/_api/contextinfo`, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json;odata=verbose"
+      }
+    });
+
+    const digestData = await digestResp.json();
+
+    const digest = digestData.d.GetContextWebInformation.FormDigestValue;
+
+    // CRIAR ITEM
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose",
+        "X-RequestDigest": digest
+      },
+      body: JSON.stringify({
+        __metadata: { type: "SP.Data.MDR_ProcessosListItem" },
+        Title: "TESTE API",
+        processCode: "MDR-TESTE",
+        Status: "LIBERADA PARA EXPEDIÇÃO",
+        Lane: "LIBERADAS"
+      })
+    });
+
+    if(response.ok){
+      alert("✅ Card criado com sucesso!");
+    } else {
+      const errorText = await response.text();
+      console.error(errorText);
+      alert("❌ Erro ao criar item");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erro geral: " + err.message);
+  }
+}
+</script>
+
+</body>
+</html>
